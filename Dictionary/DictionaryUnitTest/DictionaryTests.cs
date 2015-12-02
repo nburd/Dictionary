@@ -6,7 +6,7 @@ using System.Linq;
 namespace DictionaryUnitTest
 {
     [TestClass]
-    public class DictionaryTest
+    public class DictionaryTests
     {
         private Dictionary<int, string> dictionary;
         private int[] keys;
@@ -18,10 +18,9 @@ namespace DictionaryUnitTest
             dictionary = new Dictionary<int, string>();
             keys = new int[]{ 1, 2, 8 };
             values = new string[]{ "dog", "cat", "mouse" };
-
             for (int i = 0; i < 3; i++)
                 dictionary.Add(keys[i], values[i]);
-        }
+        }        
 
         [TestMethod]
         public void IndexatorSetter()
@@ -94,24 +93,20 @@ namespace DictionaryUnitTest
         [TestMethod]
         public void AddKeyValuePair()
         {
-            dictionary = new Dictionary<int, string>();
-
-            var kvp = new System.Collections.Generic.KeyValuePair<int, string>(1, "value");
+            var kvp = new System.Collections.Generic.KeyValuePair<int, string>(4, "value");
             dictionary.Add(kvp);
 
-            Assert.AreEqual(1, dictionary.Count);
-            Assert.AreEqual("value", dictionary[1]);
+            Assert.AreEqual(4, dictionary.Count);
+            Assert.AreEqual("value", dictionary[4]);
         }
 
         [TestMethod]
         public void AddKeyAndValue()
         {
-            dictionary = new Dictionary<int, string>();
-                       
-            dictionary.Add(1, "value");
+            dictionary.Add(4, "value");
 
-            Assert.AreEqual(1, dictionary.Count);
-            Assert.AreEqual("value", dictionary[1]);
+            Assert.AreEqual(4, dictionary.Count);
+            Assert.AreEqual("value", dictionary[4]);
         }
 
         [TestMethod]
@@ -200,7 +195,7 @@ namespace DictionaryUnitTest
             Assert.IsTrue(result);
             Assert.AreEqual("dog", value);            
         }
-
+       
         private bool InRange(int a, int b, int value)
         {
             return a <= value && value <= b;
