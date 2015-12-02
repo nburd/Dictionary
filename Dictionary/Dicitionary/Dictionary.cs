@@ -2,49 +2,47 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Dictionary
+namespace NBurd
 {
-    public class myDictionary<TKey, TValue> : IDictionary<TKey, TValue>
+    public class Dictionary<TKey, TValue> : IDictionary<TKey, TValue>
     {
-        private IEqualityComparer<TKey> Comparer;
+        #region Fields
+
+        private readonly IEqualityComparer<TKey> comparer = EqualityComparer<TKey>.Default;        
+        private Node[] baskets = new Node[7];
+        private int[] counters = new int[7];
+        private int count = 0;
         private Node head;
-        private int count;
-        private Node[] baskets;
-        private int[] mas;
-        private int thresholdValue;
+        private int threshold = 5;
 
-        public myDictionary()
+        #endregion
+        #region Constructors
+
+        public Dictionary()
         {
-            baskets = new Node[7];
-            for (int i = 0; i < baskets.Length; i++)
+            for(int i = 0; i < baskets.Length; i++)
                 baskets[i] = head;
-            mas = new int[7];
-            count = 0;
-            thresholdValue = 5;
         }
 
-        public myDictionary(IEqualityComparer<TKey> сomparer)
+        public Dictionary(IEqualityComparer<TKey> сomparer)
         {
-            baskets = new Node[7];
             for (int i = 0; i < baskets.Length; i++)
                 baskets[i] = head;
-            mas = new int[7];
-            count = 0;
-            thresholdValue = 5;
-            Comparer = сomparer;
+            this.comparer = сomparer;
         }
 
-        private int GetIndexBaskets(int hash)
+        #endregion
+        #region Private Methods
+
+        private int GetIndexOfBasket(int hash)
         {
             return Math.Abs(hash % baskets.Length);
         }
 
-        private void InsertKVP(int hash, TKey key, TValue value)
+        private void InsertKeyValuePair(int hash, TKey key, TValue value)
         {
-            var index = GetIndexBaskets(hash);
+            var index = GetIndexOfBasket(hash);
             var node = GetNode(hash, index);
             if (node == null)
             {
@@ -52,41 +50,41 @@ namespace Dictionary
                 baskets[index] = node;
             }
 
-            if (node.KeyValuePair.Any(x => Comparer.Equals(x.Key, key)))
+            if (node.KeyValuePairCollection.Any(x => comparer.Equals(x.Key, key)))
                 throw new ArgumentException("Such key already exist");
 
-            node.KeyValuePair.Add(new KeyValuePair(key, value));
+            node.KeyValuePairCollection.Add(new KeyValuePair(key, value));
             ++count;
-            ++mas[index];
+            ++counters[index];
         }
 
         private void Add(int hash, TKey key, TValue value)
         {
-            InsertKVP(hash, key, value);
+            InsertKeyValuePair(hash, key, value);
             TryResize();
         }
 
         public void Set(int hash, TKey key, TValue newValue)
         {
-            var index = GetIndexBaskets(hash);
+            var index = GetIndexOfBasket(hash);
             var current = GetNode(hash, index);
 
             if (current == null)
                 throw new ArgumentException("Such key doesn't exist");
 
-            current.KeyValuePair.First(x => Comparer.Equals(x.Key, key)).Value = newValue;
+            current.KeyValuePairCollection.First(x => comparer.Equals(x.Key, key)).Value = newValue;
         }
 
         private bool TryGet(int hash, TKey key, out TValue value)
         {
             value = default(TValue);
 
-            var index = GetIndexBaskets(hash);
+            var index = GetIndexOfBasket(hash);
             var current = GetNode(hash, index);
             if (current == null)
                 return false;
 
-            var kvp = current.KeyValuePair.FirstOrDefault(x => Comparer.Equals(x.Key, key));
+            var kvp = current.KeyValuePairCollection.FirstOrDefault(x => comparer.Equals(x.Key, key));
             if (kvp == null)
                 return false;
 
@@ -96,40 +94,40 @@ namespace Dictionary
 
         private bool Delete(int hash, TKey key)
         {
-            var index = GetIndexBaskets(hash);
+            var index = GetIndexOfBasket(hash);
             var current = GetNode(hash, index);
             if (current == null)
                 throw new ArgumentException("Such key doesn't exist");
 
-            var kvp = current.KeyValuePair.FirstOrDefault(x => Comparer.Equals(x.Key, key));
+            var kvp = current.KeyValuePairCollection.FirstOrDefault(x => comparer.Equals(x.Key, key));
             if (kvp == null)
                 throw new ArgumentException("Such key doesn't exist");
 
-            current.KeyValuePair.Remove(kvp);
+            current.KeyValuePairCollection.Remove(kvp);
             --count;
-            --mas[index];
+            --counters[index];
             return true;
         }
 
         private void TryResize()
         {
             int empty = 0;
-            for (int cur = 0; cur < mas.Length; cur++)
-                if (mas[cur] > thresholdValue)
+            for (int cur = 0; cur < counters.Length; cur++)
+                if (counters[cur] > threshold)
                 {
                     Node[] temp = (Node[])baskets.Clone();
                     baskets = new Node[baskets.Length * 2];
-                    mas = new int[mas.Length * 2];
+                    counters = new int[counters.Length * 2];
                     Copy(temp);
                     break;
                 }
-                else if (mas[cur] == 0)
+                else if (counters[cur] == 0)
                     empty++;
-            if (empty > mas.Length / 4 && count > mas.Length)
+            if (empty > counters.Length / 4 && count > counters.Length)
             {
                 Node[] temp = (Node[])baskets.Clone();
                 baskets = new Node[baskets.Length / 2];
-                mas = new int[mas.Length / 2];
+                counters = new int[counters.Length / 2];
                 Copy(temp);
             }
         }
@@ -143,9 +141,8 @@ namespace Dictionary
                     var current = temp[i];
                     while (current != null)
                     {
-                        var collect = current.KeyValuePair.Take(current.KeyValuePair.Count);
-                        foreach (var c in collect)
-                            InsertKVP(Comparer.GetHashCode(c.Key), c.Key, c.Value);
+                        foreach (var kvp in current.KeyValuePairCollection)
+                            InsertKeyValuePair(comparer.GetHashCode(kvp.Key), kvp.Key, kvp.Value);
                         current = current.Next;
                     }
                 }
@@ -163,6 +160,7 @@ namespace Dictionary
             return current;
         }
 
+        #endregion
         #region IDictionary
 
         public TValue this[TKey key]
@@ -170,14 +168,14 @@ namespace Dictionary
             get
             {
                 TValue value;
-                if (!TryGet(Comparer.GetHashCode(key), key, out value))
+                if (!TryGet(comparer.GetHashCode(key), key, out value))
                     throw new ArgumentException("Such value doesn't exist");
                 return value;
             }
 
             set
             {
-                Set(Comparer.GetHashCode(key), key, value);
+                Set(comparer.GetHashCode(key), key, value);
             }
         }
 
@@ -201,14 +199,22 @@ namespace Dictionary
         {
             get
             {
-                var current = head;
-                while (current != null)
+                var result = new List<TKey>();
+                for (int i = 0; i < baskets.Length; i++)
                 {
-                    foreach (var kvp in current.KeyValuePair)
-                        Keys.Add(kvp.Key);
-                    current = current.Next;
+                    if (baskets[i] == null)
+                        continue;
+                                        
+                    var current = baskets[i];
+                    while (current != null)
+                    {
+                        var kvps = current.KeyValuePairCollection;
+                        foreach (var kvp in kvps)
+                            result.Add(kvp.Key);
+                        current = current.Next;
+                    }                    
                 }
-                return Keys;
+                return result;
             }
         }
 
@@ -216,82 +222,101 @@ namespace Dictionary
         {
             get
             {
-                var current = head;
-                while (current != null)
+                var result = new List<TValue>();
+                for (int i = 0; i < baskets.Length; i++)
                 {
-                    foreach (var kvp in current.KeyValuePair)
-                        Values.Add(kvp.Value);
-                    current = current.Next;
+                    if (baskets[i] != null)
+                    {
+                        var current = baskets[i];
+                        while (current != null)
+                        {
+                            foreach (var cur in current.KeyValuePairCollection)
+                                result.Add(cur.Value);
+                            current = current.Next;
+                        }
+                    }
                 }
-                return Values;
+                return result;
             }
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            Add(Comparer.GetHashCode(item.Key), item.Key, item.Value);
+            Add(comparer.GetHashCode(item.Key), item.Key, item.Value);
         }
 
         public void Add(TKey key, TValue value)
         {
-            Add(Comparer.GetHashCode(key), key, value);
+            Add(comparer.GetHashCode(key), key, value);
         }
 
         public void Clear()
         {
-            var current = head;
-            while (current != null)
-            {
-                current.KeyValuePair.Clear();
-                current = current.Next;
-            }
+            baskets = new Node[7];
+            counters = new int[7];
             count = 0;
             head = null;
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            var index = GetIndexBaskets(Comparer.GetHashCode(item.Key));
-            var current = GetNode(Comparer.GetHashCode(item.Key), index);
-            return current.KeyValuePair.Any(x => (Comparer.Equals(x.Key, item.Key) && Equals(x.Value, item.Value)));
+            var index = GetIndexOfBasket(comparer.GetHashCode(item.Key));
+            var current = GetNode(comparer.GetHashCode(item.Key), index);
+            return current.KeyValuePairCollection
+                .Any(x => (comparer.Equals(x.Key, item.Key) && Equals(x.Value, item.Value)));
         }
 
         public bool ContainsKey(TKey key)
         {
-            var index = GetIndexBaskets(Comparer.GetHashCode(key));
-            var current = GetNode(Comparer.GetHashCode(key), index);
-            return current.KeyValuePair.Any(x => Comparer.Equals(x.Key, key));
+            var index = GetIndexOfBasket(comparer.GetHashCode(key));
+            var current = GetNode(comparer.GetHashCode(key), index);
+            return current.KeyValuePairCollection.Any(x => comparer.Equals(x.Key, key));
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-        {
-
+        {            
+            if (array.Length > count + arrayIndex)
+                throw new ArgumentException("Lead to out of range.");
+            for (int i = 0; i < count; ++i, ++arrayIndex)
+                foreach (var key in Keys)
+                {
+                    TValue value;
+                    TryGetValue(key, out value);
+                    array[arrayIndex] = new KeyValuePair<TKey, TValue>(key, value); 
+                }
         }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            var current = head;
-            while (current != null)
+            var result = new List<TKey>();
+            for (int i = 0; i < baskets.Length; i++)
             {
-                foreach (var kvp in current.KeyValuePair)
-                    yield return new KeyValuePair<TKey, TValue>(kvp.Key, kvp.Value);
-                current = current.Next;
+                if (baskets[i] == null)
+                    continue;
+
+                var current = baskets[i];
+                while (current != null)
+                {
+                    foreach (var cur in current.KeyValuePairCollection)
+                        yield return new KeyValuePair<TKey, TValue>(cur.Key, cur.Value);
+                    current = current.Next;
+                }                
             }
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
         {
-            return Delete(Comparer.GetHashCode(item.Key), item.Key);
+            return Delete(comparer.GetHashCode(item.Key), item.Key);
         }
 
         public bool Remove(TKey key)
         {
-            return Delete(Comparer.GetHashCode(key), key);
+            return Delete(comparer.GetHashCode(key), key);
         }
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            return TryGet(Comparer.GetHashCode(key), key, out value);
+            return TryGet(comparer.GetHashCode(key), key, out value);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -308,13 +333,13 @@ namespace Dictionary
 
             public int Hash { get; set; }
 
-            public ICollection<KeyValuePair> KeyValuePair { get; set; }
+            public ICollection<KeyValuePair> KeyValuePairCollection { get; set; }
 
             public Node(int hash, Node next)
             {
                 Hash = hash;
                 Next = next;
-                KeyValuePair = new List<KeyValuePair>();
+                KeyValuePairCollection = new List<KeyValuePair>();
             }
         }
 
