@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Dicitionary", "Dicitionary\Dicitionary.csproj", "{835450EB-EAC6-4EE4-8072-AA257716BE9A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DictionaryUnitTest", "DictionaryUnitTest\DictionaryUnitTest.csproj", "{670299F4-9016-4F29-88C9-D520832C6EA7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{835450EB-EAC6-4EE4-8072-AA257716BE9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{835450EB-EAC6-4EE4-8072-AA257716BE9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{835450EB-EAC6-4EE4-8072-AA257716BE9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{670299F4-9016-4F29-88C9-D520832C6EA7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{670299F4-9016-4F29-88C9-D520832C6EA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{670299F4-9016-4F29-88C9-D520832C6EA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{670299F4-9016-4F29-88C9-D520832C6EA7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

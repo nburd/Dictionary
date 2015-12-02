@@ -275,15 +275,14 @@ namespace NBurd
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {            
-            if (array.Length > count + arrayIndex)
-                throw new ArgumentException("Lead to out of range.");
-            for (int i = 0; i < count; ++i, ++arrayIndex)
-                foreach (var key in Keys)
-                {
-                    TValue value;
-                    TryGetValue(key, out value);
-                    array[arrayIndex] = new KeyValuePair<TKey, TValue>(key, value); 
-                }
+            if (array.Length < count + arrayIndex)
+                throw new ArgumentException("Lead to out of range.");            
+            foreach (var key in Keys)
+            {
+                TValue value;
+                TryGetValue(key, out value);
+                array[arrayIndex++] = new KeyValuePair<TKey, TValue>(key, value); 
+            }
         }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
